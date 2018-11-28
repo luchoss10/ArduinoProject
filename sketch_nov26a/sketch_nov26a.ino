@@ -233,8 +233,8 @@ void operativo() {
     }
     digitalWrite(R_EN,HIGH);
   
-    analogWrite(RPWM,PWM_M1_F);
-    analogWrite(M2PWM,PWM_M2_F);
+    analogWrite(RPWM,PWM_M1_F[PWM_M1_S]);
+    analogWrite(M2PWM,PWM_M2_F[PWM_M2_S]);
     entS = 1;
   }else{
     lcd.setCursor(5, 1);
