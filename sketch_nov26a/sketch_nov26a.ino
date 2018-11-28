@@ -4,6 +4,13 @@ LiquidCrystal lcd(22, 23, 25, 24, 27, 26);
 //Definción de variables
 int lcd_key     = 0;
 int adc_key_in  = 0;
+int RELE = 28;
+int RPWM=5;
+int LPWM=6;
+int L_EN=7;
+int R_EN=8;
+int M2PWM=9;
+
 #define btnRIGHT  0
 #define btnUP     1
 #define btnDOWN   2
@@ -25,9 +32,9 @@ const char *txtMenu[] = {
 
 const char *txtOptions [] = {
   "Velocidad   ",
-  "Cosa X      ",
+  "Motor 2     ",
   "Movimiento  ",
-  "Salir No Guardar"
+  "Salir No Guardar",
   "Guardar y Salir "                                                                             
 };
 
@@ -54,7 +61,7 @@ const char*txtM2[] = {
 };
 
 int MENU = 0;// 3 menus 0=  pantalla de muestra 1= selecionador 2= opciones
-int countMenu = 0, countOp = 0, entM=0, entO=0, pushButton = 0, PWM_M1_S=0, PWM_M2_S=0, MOV=0;// Contadores de poscion menu y opciones
+int countMenu = 0, countOp = 0, entM=0, entO=0, pushButton = 0, PWM_M1_S=0, PWM_M2_S=0, MOV=0, PWM_M1_A, PWM_M2_A, MOVA;// Contadores de poscion menu y opciones
 
 int PWM_M1_F[] = {51, 102, 153, 204, 255};
 int PWM_M2_F[] = {43, 87, 130, 173, 217, 255};
@@ -68,13 +75,16 @@ void setup(){
 void loop() {
   switch(MENU){
     case 0:
-    menu0 ();
+      menu0 ();
     break;
     case 1:
-    menu1();
+      menu1();
     break;
     case 2:
-    menu2();
+      menu2();
+    break;
+    case 3:
+      operativo();
     break;
   }
   
@@ -144,21 +154,33 @@ void menu2(){
     lcd.print("Configuracion   ");
     lcd.setCursor(0, 1);
     lcd.print(txtOptions[countOp]);
-  entM=1;  
+    PWM_M1_A = PWM_M1_S;
+    PWM_M2_A = PWM_M2_S;
+    MOVA = MOV;
+    entO=1;  
   }else{
-    lcd.setCursor(0, 1);
-    lcd.print(txtOptions[countOp]);
     if(countOp == 0){
       lcd.setCursor(12, 1);
       lcd.print(txtM1[PWM_M1_S]);
-    }else if(countOp == 1){
+    }
+    if(countOp == 1){
       lcd.setCursor(12, 1);
       lcd.print(txtM2[PWM_M2_S]);
-    }else if(countOp == 2){
+    }
+    if(countOp == 2){
       lcd.setCursor(12, 1);
       lcd.print(txtMov[MOV]);
     }
+    lcd.setCursor(0, 1);
+    lcd.print(txtOptions[countOp]);
     revBtns(MENU);
+  }
+}
+
+void operativo(){
+  if(MOV==1)
+  {
+    digitalWrite(RELE,HIGH);
   }
 }
 
@@ -181,19 +203,27 @@ void revBtns(int menuCase){
   if( lcd_key == btnRIGHT){
     switch(menuCase){
       case 0:
-      MENU=1;
+        MENU=1;
       break;
       case 1:
         
       break;
       case 2:
+      if(pushButton == 0){
         if(countOp == 0){
+          if(PWM_M1_S<4){
+            PWM_M1_S++;
+          }
           
         }else if(countOp == 1){
-          
+          if(PWM_M2_S<6){
+            PWM_M2_S++;
+          }
         }else if(countOp == 2){
-          
+          if(MOV<1) MOV++;
         }
+        pushButton = 1;
+      }
       break;
     }
   }
@@ -206,12 +236,19 @@ void revBtns(int menuCase){
       
       break;
       case 2:
-        if(countOp == 0){
-          
-        }else if(countOp == 1){
-          
-        }else if(countOp == 2){
-          
+        if(pushButton == 0){
+          if(countOp == 0){
+            if(PWM_M1_S >0){
+              PWM_M1_S--;
+            }
+          }else if(countOp == 1){
+            if(PWM_M2_S>0){
+              PWM_M2_S--;
+            }
+          }else if(countOp == 2){
+            if(MOV>0)MOV--;
+          }
+          pushButton = 1;
         }
       break;
     }   
@@ -230,7 +267,12 @@ void revBtns(int menuCase){
         }
       break;
       case 2:
-
+      if(pushButton == 0){
+        if(countOp<4){
+            countOp++;
+          }
+          pushButton = 1;
+        }
       break;
     }
   }
@@ -248,7 +290,12 @@ void revBtns(int menuCase){
         }
       break;
       case 2:
-
+      if(pushButton == 0){
+          if(countOp>0){
+            countOp--;
+          }
+          pushButton=1;
+        }
       break;
     }
   }
@@ -259,9 +306,9 @@ void revBtns(int menuCase){
       break;
       case 1:
         if(pushButton == 0){
-        entM = 0;
+          entM = 0;
         if(countMenu==0){
-          //Por ahora nada
+          MENU=3;
         }else if(countMenu==1){
           MENU=2;
         }else{
@@ -271,7 +318,35 @@ void revBtns(int menuCase){
         }
       break;
       case 2:
-      
+        if(countOp == 0){
+          if(PWM_M1_S<4){
+            PWM_M1_S++;
+          }else if(PWM_M1_S==4){
+            PWM_M1_S = 0;
+          }
+        }else if(countOp == 1){
+          if(PWM_M2_S<6){
+            PWM_M2_S++;
+          }else if(PWM_M2_S==6){
+            PWM_M2_S=0;
+          } 
+        }else if(countOp == 2){
+          if(MOV<1){
+            MOV++;
+          }else if(MOV==1){
+            MOV=0; 
+          }
+        }else if(countOp == 3){
+          MOV = MOVA;
+          PWM_M1_S=PWM_M1_A;
+          PWM_M2_S=PWM_M2_A;
+          entO = 0;
+          MENU=1;
+        }else if(countOp == 4){
+          entO = 0;
+          MENU=1;
+        }
+        pushButton = 1;
       break;
     }
   }
