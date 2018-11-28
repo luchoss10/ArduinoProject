@@ -7,24 +7,26 @@
  * Codigo Libre
  */
 
+//Libreria LCD
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(22, 23, 25, 24, 27, 26);
 
-//Definción de variables
+//Definción de variables---------------
+//Variables de botones
 int lcd_key     = 0;
 int adc_key_in  = 0;
+//Variable manejo de potencia
 int RELE = 28;
 int RPWM = 5;
 int LPWM = 6;
 int L_EN = 7;
 int R_EN = 8;
 int M2PWM = 9;
-
-
+//Variables control de tiempo
 unsigned long tAhora = 0;
 unsigned long tAntes = 0;
 long tActivo = 0, tActivoA;
-
+//Variables Pines LCD
 #define btnRIGHT  0
 #define btnUP     1
 #define btnDOWN   2
@@ -32,12 +34,13 @@ long tActivo = 0, tActivoA;
 #define btnSELECT 4
 #define btnNONE   5
 #define velocidadTexto 400
-
+//Mensajes de la pantalla de eepera
 String txt1 = "Club Drive Tennis";
 String txt2 = "   Lanzapelotas  ";
 String txt3 = "Ing. Mecatronica";
 String txt4 = "       UTP      ";
 
+//Mensajes de los menus
 const char *txtMenu[] = {
   "Comenzar        ",
   "Configuracion   ",
@@ -88,14 +91,15 @@ const char *txtTime[] = {
   "10Mi",
 };
 
+//Variabels control de menus
 int MENU = 0;// 3 menus 0=  pantalla de muestra 1= selecionador 2= opciones
-int countMenu = 0, countOp = 0, entM = 0, entO = 0, entS = 0, pushButton = 0, PWM_M1_S = 0, PWM_M2_S = 0, MOV = 0, PWM_M1_A, PWM_M2_A, MOVA; // Contadores de poscion menu y opciones
-
+// Contadores de poscion menu y opciones, Variables que determinan el funcionamiento de la maquina
+int countMenu = 0, countOp = 0, entM = 0, entO = 0, entS = 0, pushButton = 0, PWM_M1_S = 0, PWM_M2_S = 0, MOV = 0, PWM_M1_A, PWM_M2_A, MOVA; 
 int PWM_M1_F[] = {51, 102, 153, 204, 255};
 int PWM_M2_F[] = {43, 87, 130, 173, 217, 255};
 
 void setup() {
-  // put your setup code here, to run once:
+  // Configuracion de pines de salida 
   pinMode(RELE, OUTPUT);
   digitalWrite(RELE,HIGH);
   for(int i=5;i<9;i++){
@@ -110,6 +114,7 @@ void setup() {
 }
 
 void loop() {
+  //Funcion loop que entra al menu determinado
   switch (MENU) {
     case 0:
       menu0 ();
@@ -121,13 +126,16 @@ void loop() {
       menu2();
       break;
     case 3:
+      //funcion que determina el tiempo transcurrido en el instante
       tAhora = millis();
       operativo();
       break;
   }
   
 }
+//menu 0 que controla el modo de espera y muestra mensajes en la pantalla
 void menu0 () {
+  //Rutina mensaje que se desplaza ------------------------------
   int tamTxt1 = txt1.length();
   for (int i = tamTxt1; i > 0 ; i--) {
     if(MENU == 1) break;
@@ -158,6 +166,7 @@ void menu0 () {
     delay(velocidadTexto);
     revBtns(MENU);
   }
+  //Rutina que muestra un mensaje estatico
   for (int i = 1; i <= 16 ; i++) {
     if(MENU == 1) break;
     lcd.clear();
@@ -169,7 +178,7 @@ void menu0 () {
     revBtns(MENU);
   }
 }
-
+//Menu 1 dessde aqui se accede al menu de configuracion y se da inicio la maquina
 void menu1() {
   if (entM == 0) {
     lcd.clear();
@@ -184,7 +193,7 @@ void menu1() {
     revBtns(MENU);
   }
 }
-
+//Menu 2 onfiguraciones del sistema
 void menu2() {
   if (entO == 0) {
     lcd.clear();
@@ -219,7 +228,7 @@ void menu2() {
     revBtns(MENU);
   }
 }
-
+//Menu operativo, desde aqui se realizan todas las acciones para el control de la maquina en determinado tiempo con los datos y parametros configurados.
 void operativo() {
   if(entS == 0){
     lcd.clear();
@@ -237,7 +246,7 @@ void operativo() {
     analogWrite(M2PWM,PWM_M2_F[PWM_M2_S]);
     entS = 1;
   }else{
-    lcd.setCursor(5, 1);
+    lcd.setCursor(0, 1);
     int Cosa = tActivo + 1;
     lcd.print(String(Cosa)   + "Min activo");
   }
@@ -253,6 +262,7 @@ void operativo() {
   
 }
 
+//Funcion para determinar el boton pulsado con su valor analogico
 int read_LCD_buttons() {
   adc_key_in = analogRead(0);      // Leemos A0
   // Mis botones dan:  0, 145, 329,507,743
@@ -266,8 +276,8 @@ int read_LCD_buttons() {
   return btnNONE;  // Por si todo falla
 }
 
+//Una vez determinado el boton pulsado en esta funcion se determina su accion, dependiendo del menu en el que se encuentre. 
 void revBtns(int menuCase) {
-
   lcd_key = read_LCD_buttons();
   if ( lcd_key == btnRIGHT) {
     switch (menuCase) {
@@ -433,4 +443,3 @@ void revBtns(int menuCase) {
     pushButton = 0;
   }
 }
-
