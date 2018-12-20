@@ -21,7 +21,7 @@ int RPWM = 5;
 int LPWM = 6;
 int L_EN = 7;
 int R_EN = 8;
-int M2PWM = 9;
+int M2PWM = 9; 
 //Variables control de tiempo
 unsigned long tAhora = 0;
 unsigned long tAntes = 0;
@@ -49,7 +49,7 @@ const char *txtMenu[] = {
 
 const char *txtOptions [] = {
   "Velocidad   ",
-  "Motor 2     ",
+  "Motor DISP  ",
   "Movimiento  ",
   "Tiempo      ",
   "Salir No Guardar",
@@ -102,12 +102,18 @@ void setup() {
   // Configuracion de pines de salida 
   pinMode(RELE, OUTPUT);
   digitalWrite(RELE,HIGH);
-  for(int i=5;i<9;i++){
-   pinMode(i,OUTPUT);
-  }
-   for(int i=5;i<9;i++){
-   digitalWrite(i,LOW);
-  }
+  
+  pinMode(RPWM,OUTPUT);
+  pinMode(LPWM,OUTPUT);
+  pinMode(L_EN,OUTPUT);
+  pinMode(R_EN,OUTPUT);
+  pinMode(M2PWM,OUTPUT);
+  
+  digitalWrite(RPWM,LOW);
+  digitalWrite(LPWM,LOW);
+  digitalWrite(L_EN,LOW);
+  digitalWrite(R_EN,LOW);
+  digitalWrite(M2PWM,LOW);
   
   lcd.begin(16, 2);              // Inicializar el LCD
   lcd.setCursor(0, 0);
@@ -240,20 +246,27 @@ void operativo() {
     }else if(MOV == 0){
       digitalWrite(RELE,HIGH);
     }
+    digitalWrite(L_EN,HIGH);
     digitalWrite(R_EN,HIGH);
-  
+
+    analogWrite(LPWM, 0);
     analogWrite(RPWM,PWM_M1_F[PWM_M1_S]);
-    analogWrite(M2PWM,PWM_M2_F[PWM_M2_S]);
+     
     entS = 1;
   }else{
     lcd.setCursor(0, 1);
     int Cosa = tActivo + 1;
     lcd.print(String(Cosa)   + "Min activo");
   }
+
+  if(tAhora -tAntes >=  10000){
+    analogWrite(M2PWM,PWM_M2_F[PWM_M2_S]);
+  }
   
   if(tAhora - tAntes >=((tActivo+1)*60*1000)){
     analogWrite(RPWM,0);
     analogWrite(M2PWM,0);
+    digitalWrite(L_EN,LOW);
     digitalWrite(R_EN,LOW);
     digitalWrite(RELE,HIGH);
     entS = 0;
@@ -336,7 +349,7 @@ void revBtns(int menuCase) {
         break;
     }
   }
-  else if ( lcd_key == btnUP) {
+  else if ( lcd_key == btnDOWN) {
     switch (menuCase) {
       case 0:
         MENU = 1;
@@ -359,7 +372,7 @@ void revBtns(int menuCase) {
         break;
     }
   }
-  else if ( lcd_key == btnDOWN) {
+  else if ( lcd_key == btnUP) {
     switch (menuCase) {
       case 0:
         MENU = 1;
